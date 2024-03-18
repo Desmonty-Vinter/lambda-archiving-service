@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 s3 = boto3.client('s3')
 
 
-S3_KEY_PREFIX: str = "test_vcxt_trade",
-S3_BUCKET: str = "stage-trades-archive",
+S3_KEY_PREFIX: str = "test_vcxt_trade"
+S3_BUCKET: str = "stage-trades-archive"
 FORMAT: str = "parquet"
 
 
@@ -25,9 +25,12 @@ def lambda_handler(event, context):
         event['Records'][0]['s3']['object']['key'],
         encoding='utf-8'
     )
+    print(f"Bucket: {bucket}")
+    print(f"Key: {key}")
+
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
-        trades = orjson.loads(response['Body'])
+        trades = orjson.loads(response['Body'].read())
         vcxt_trades_process_data(
             trades,
             s3_key_prefix=S3_KEY_PREFIX,
