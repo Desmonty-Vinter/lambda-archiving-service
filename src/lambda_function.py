@@ -118,6 +118,7 @@ def vcxt_trades_process_data(
             "Exception raised while saving data to S3: ",
             exc_info=e
         )
+        raise e
 
 
 if __name__ == "__main__":
