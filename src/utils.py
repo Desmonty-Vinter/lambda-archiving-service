@@ -12,6 +12,12 @@ vcxt_trades_columns = [
     "amount"
 ]
 
+prefix = "/Archivingservice/"
+
+
+def get_ssm_parameter(name: str, ssm_client) -> str:
+    return ssm_client.get_parameter(Name=prefix+name)['Parameter']['Value']
+
 
 def _now_ts():
     return dt.datetime.now(tz=dt.timezone.utc).timestamp()
