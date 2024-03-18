@@ -6,16 +6,17 @@ import logging
 import orjson
 
 from save_to_s3 import save_df_to_s3
-from utils import clean_and_transform, _now_ts
+from utils import (
+    clean_and_transform,
+    _now_ts,
+    get_ssm_parameter,
+)
 
 logger = logging.getLogger(__name__)
 
 s3 = boto3.client('s3')
 
-
-S3_KEY_PREFIX: str = "test_vcxt_trade"
-S3_BUCKET: str = "stage-trades-archive"
-FORMAT: str = "parquet"
+ssm = boto3.client('ssm')
 
 
 def lambda_handler(event, context):
@@ -29,6 +30,10 @@ def lambda_handler(event, context):
     print(f"Key: {key}")
 
     try:
+        S3_KEY_PREFIX = get_ssm_parameter('S3_KEY_PREFIX', ssm)
+        S3_BUCKET = get_ssm_parameter('S3_BUCKET', ssm)
+        FORMAT = get_ssm_parameter('FORMAT', ssm)
+
         response = s3.get_object(Bucket=bucket, Key=key)
         trades = orjson.loads(response['Body'].read())
         vcxt_trades_process_data(
@@ -119,20 +124,3 @@ def vcxt_trades_process_data(
             exc_info=e
         )
         raise e
-
-
-if __name__ == "__main__":
-    lambda_handler({
-        "Records": [
-            {
-                "s3": {
-                    "bucket": {
-                        "name": "stage-trades-archive"
-                    },
-                    "object": {
-                        "key": "vcxt_trades/2021-09-01T00:00:00Z.parquet"
-                    }
-                }
-            }
-        ]
-    }, None)
